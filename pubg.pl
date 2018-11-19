@@ -88,4 +88,35 @@ look :-
 	A is X+1, B is Y  , posisi(A,B,Tipe), print(Tipe).
 	A is X+1, B is Y+1, posisi(A,B,Tipe), print(Tipe).
 
+n :-
+	posisi(X, Y, player), retract(posisi(X, Y, player)), 
+	Temp is Y-1, assert(posisi(X, Temp, player)).
+s :-
+	posisi(X, Y, player), retract(posisi(X, Y, player)), 
+	Temp is Y+1, assert(posisi(X, Temp, player)).
+e :-
+	posisi(X, Y, player), retract(posisi(X, Y, player)), 
+	Temp is X+1, assert(posisi(Temp, Y, player)).
+w :-
+	posisi(X, Y, player), retract(posisi(X, Y, player)), 
+	Temp is X-1, assert(posisi(Temp, Y, player)).
 
+listObjCount([], Count) :- Count is 0.
+listObjCount([Head|Tail], Count) :- 
+	listObjCount(Tail, Temp),
+	Count is Temp+1.
+	
+isInvFull :-
+	inventory(MaxCap, ListObjek, BanyakObjek).
+	listObjCount(ListObjek, ListCount),
+	ListCount < MaxCap.
+
+take(X) :-
+	(weapon(_, X, _, _, _); medicine(X, _)),
+	isInvFull,
+	retract(inventory(MaxCap, ListObjek, BanyakObjek)),
+	append(X, ListObjek),
+	append(Jumlah, BanyakObjek),
+	assert(inventory(MaxCap, ListObjek, BanyakObjek)).
+
+quit :- stop.
