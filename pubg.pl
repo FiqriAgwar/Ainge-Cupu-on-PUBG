@@ -1,30 +1,44 @@
-:- dynamic pemain/3
-:- dynamic inventori/3
-:- dynamic posisi/3
+# pemain(Health, Armor).
+:- dynamic player_stat/2
+# inventory(InventoryID, MaxCap, [ListObjek], [BanyakObjek]). -> ListObjek[i] koresponden dengan BanyakObjek[i]
+:- dynamic inventory/4
+# position(ObjectID, X, Y).
+:- dynamic position/3
+# musuh(EnemyID, Senjata, InventoryID).
+:- dynamic enemy/3
+# equipped_weapon(WielderID, WeaponID, AmmoCount).
+:- dynamic equipped_weapon/3
 
-#insiasi pemain(Health, Armor, Weapon).
-pemain(100, 0, none).
+# insiasi pemain
+player_stat(100, 0).
 
-#inisiasi inventory(MaxCap, [ListObjek], [BanyakObjek]). -> ListObjek[i] koresponden dengan BanyakObjek[i]
-inventory(5,[],[]).
+# contoh inventory(InventoryID, MaxCap, [ListObjek], [BanyakObjek]). -> ListObjek[i] koresponden dengan BanyakObjek[i]
+#inventory(player, 5, [], []).
+#inventory(enemy1, 3, [], []).
 
-#fakta weapon(Index, Nama, Damage, JenisAmmo, MaxAmmo)
-weapon(1, ak47, 35, kuning, 5).
-weapon(2, m4a6, 30, hijau, 5).
-weapon(3, ump, 25, jingga, 8).
-weapon(4, s12k, 45, merah, 3).
+# contoh position(ObjectID, X, Y).
+#position(player, 4, 5).
+#position(player, 4, 5).
 
-#fakta medicine(Nama, HPrestored)
+# fakta weapon(WeaponID, Damage, JenisAmmo, MaxAmmo)
+weapon(ak47, 35, kuning, 5).
+weapon(m4a6, 30, hijau, 5).
+weapon(ump, 25, jingga, 8).
+weapon(s12k, 45, merah, 3).
+
+# fakta medicine(Nama, HPrestored)
 medicine(medkit, 100).
 medicine(firstaid, 75).
 medicine(bandage, 15).
 
-#fakta ammo(Nama, Jumlah, LokasiX, LokasiY) ->khusus untuk drop
-#di random
+# fakta ammo(Nama, JumlahPerMagazine).
+ammo(kuning, 5).
+ammo(hijau, 5).
+ammo(jingga, 8).
+ammo(merah, 3).
 
-#inisiasi musuh(Senjata, Damage, LokasiX, LokasiY).
-#di random
-musuh(Senjata, Damage, X,Y) :- posisi(X,Y,enemy), random(1,4,N), weapon(N, Senjata, Damage, _, _).
+# contoh musuh(EnemyID).
+#enemy(enemy1).
 
 #beberapa rule dan fakta tambahan
 
@@ -107,7 +121,7 @@ listObjCount([Head|Tail], Count) :-
 	Count is Temp+1.
 	
 isInvFull :-
-	inventory(MaxCap, ListObjek, BanyakObjek).
+	inventory(player, MaxCap, ListObjek, BanyakObjek),
 	listObjCount(ListObjek, ListCount),
 	ListCount < MaxCap.
 
