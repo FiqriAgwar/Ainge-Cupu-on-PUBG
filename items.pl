@@ -1,27 +1,27 @@
-# fakta weapon(WeaponName, Damage, AmmoType, MaxAmmo)
+% fakta weapon(WeaponName, Damage, AmmoType, MaxAmmo)
 weapon('UMP9', 25, '9mm Ammo', 8).
 weapon('M16A4', 30, '5.56mm Ammo', 5).
 weapon('AKM', 35, '7.62mm Ammo', 5).
 weapon('S12K', 45, '12 Gauge Ammo', 3).
 
-# fakta ammo(Nama, JumlahPerMagazine).
+% fakta ammo(Nama, JumlahPerMagazine).
 ammo('9mm Ammo', 8).
 ammo('5.56mm Ammo', 5).
 ammo('7.62mm Ammo', 5).
 ammo('12 Gauge Ammo', 3).
 
-# fakta medicine(MedicineName, HPrestored)
+% fakta medicine(MedicineName, HPrestored)
 medicine('Bandage', 20).
 medicine('First Aid Kit', 75).
 medicine('Med Kit', 100).
 
-# fakta armor(ArmorName, ArmorModifier).
+% fakta armor(ArmorName, ArmorModifier).
 armor('Helmet', 20).
 armor('Spetnaz', 30).
 armor('Police Vest', 30).
 armor('Military Vest', 50).
 
-# fakta id(ID, NamaItem).
+% fakta id(ID, NamaItem).
 id(1, 'UMP9').
 id(2, 'M16A4').
 id(3, 'AKM').
@@ -37,3 +37,16 @@ id(12, 'Helmet').
 id(13, 'Spetnaz').
 id(14, 'Police Vest').
 id(15, 'Military Vest').
+
+init_items :-
+    random(10,15,X),
+    input_items(X).
+
+input_items(0) :- !.
+input_items(X) :-
+    random(1,10,Absis),
+    random(1,10,Ordinat),
+    random(1,15,IdItems),
+    asserta(position(IdItems,Absis,Ordinat)),
+    Y is X-1,
+    input_items(Y), !.

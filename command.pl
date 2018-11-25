@@ -1,97 +1,112 @@
 /*SELURUH BENTUK COMMAND SELAIN URUSAN PETA*/
 
+has_started:- g_read(started,0), write('Game hasn\'t started yet!'),nl,!, fail.
+has_started:- g_read(started,1),!.
+
 /*ATTACK*/
 attack :-
+    has_started,
     equipped_weapon(player,_,0),
     write('No ammo'),nl,!.
 
 attack :-
-    position(player, X, Y).
-    check_enemy(EnemyID, X, Y), #belum
-    enemy_attack(EnemyID, Damage), #belum
-    decrease_hp_player(player, Damage). #belum
-    decrease_enemy(EnemyID, JumlahEnemy), #belum
-    decrease_ammo(player,WeaponName,AmmoCount),
-    decrease_ammo(EnemyID,EnemyWeapon,EnemyWeaponAmmo),
-    !.
+    has_started,
+    position(player, X, Y), !,
+    position(EnemyID, X, Y),
+    enemy(EnemyID),
+    %check_enemy(X, Y), 
+    enemy_attack,!,
+    decrease_enemy(EnemyID), 
+    decrease_ammo(player, _, _), 
+    write('Enemy down.'),nl,!.
     
-attack :- 
-    no_attack, fail.
+attack :-
+    has_started,
+    no_attack, !.
 
 decrease_ammo(Id,WeaponName,AmmoCount) :-
-    equipped_weapon(Id, WeaponName, AmmoCount),
+    retract(equipped_weapon(Id, WeaponName, AmmoCount)),
     NewAmmoCount = AmmoCount-1,
-    retract(equipped_weapon(Id, WeaponName,AmmoCount)),
     asserta(equipped_weapon(Id, WeaponName, NewAmmoCount)).
 
 no_attack :-
     write('Attack failed!'), nl.
-#steps by steps : 
-#1. mengecek posisi player
-#2. mengecek ada enemy di X dan Y yang sama dengan player
-#3. memberikan damage kepada player
-#4. melakukan attack auto-death kepada enemy
-#5. menghilangkan  
+/*
+steps by steps : 
+1. mengecek posisi player
+2. mengecek ada enemy di X dan Y yang sama dengan player
+3. memberikan damage kepada player
+4. melakukan attack auto-death kepada enemy
+5. menghilangkan  
+*/
 
 /*MOVEMENT*/
 n :-
-    move(n).
-	#position(player, X, Y), ubah_posisi(player,X,Y,0,1).
+    has_started,
+    position(player, X, Y),
+    change_position(player,X,Y,0,-1).
 s :-
-    move(s).    
-	#position(player, X, Y), ubah_posisi(player,X,Y,0,-1).
+    has_started,
+    position(player, X, Y),
+    change_position(player,X,Y,0,1).
 e :-
-    move(e).    
-	#position(player, X, Y), ubah_posisi(player,X,Y,1,0).
+    has_started,
+	position(player, X, Y),
+    change_position(player,X,Y,1,0).
 w :-
-    move(w).    
-	#position(player, X, Y), ubah_posisi(player,X,Y,-1,0).
+    has_started,
+    position(player, X, Y),
+    change_position(player,X,Y,-1,0).
+
+change_position(ObjectID, X, Y, DeltaX, DeltaY) :-
+	retract(position(ObjectID, X, Y)),
+	NewX is X + DeltaX, NewY is Y + DeltaY,
+	asserta(position(ObjectID, NewX, NewY)).
 
 /*TAKE*/
 take(Object) :-
+    has_started,
     position(player,X,Y),
     position(Object,X,Y),
 	take_object(Object),
     write('You took ~w', [Object]),!.
 
 take(_) :-
+    has_started,
     write('Nothing here'), nl,
     fail.
 
 take_object(Object) :-
-    is_inv_full,
-    position(player,X,Y),
-    retract(position(Object,X,Y)),
-	retract(inventory(MaxCap, ListObjek, BanyakObjek)),
-	append(Object, ListObjek),
-	append(Jumlah, BanyakObjek),
-	assert(inventory(MaxCap, ListObjek, BanyakObjek)).
-    
-#steps by steps:
-#1. mengecek posisi player
-#2. mengecek ada objek di X dan Y yang sama
-#3. jika ada, melakukan penghapusan benda di posisi tersebut
-#4. lalu ditambahkan ke inventory, jika masih ada ruang
-#5. jika tidak ada, keluarkan pesan
+    is_inv_exist,
+    position(player, X, Y),
+    retract(position(Object, X, Y)).
+
+/*
+steps by steps:
+1. mengecek posisi player
+2. mengecek ada objek di X dan Y yang sama
+3. jika ada, melakukan penghapusan benda di posisi tersebut
+4. lalu ditambahkan ke inventory, jika masih ada ruang
+5. jika tidak ada, keluarkan pesan
+*/
 
 /*DROP*/
 drop(Object) :-
+    has_started,
     position(player,X,Y),
-    drop_object(Object),
-    write('You dropped ~w', [Object]),!.
+    drop_object(Object,X,Y),
+    write('You dropped ~w', [Object]), !.
 
 drop(_) :-
+    has_started,
     write('You have nothing about this object'),nl,
     fail.
 
-drop_object(Object) :-
+drop_object(Object,X,Y) :-
     position(player,X,Y),
-    retract(inventory(MaxCap, ListObjek, BanyakObjek)),
-    delete_object(Object,ListObjek,ListObjekBaru),
-    count_object(ListObjekBaru, BanyakObjekBaru),
-    asserta(inventory(MaxCap, ListObjekBaru, BanyakObjekBaru)),
-    asserta(Object,X,Y).
+    asserta(position(Object,X,Y)).
 
+/* delete_object(ObjectName, OldList, NewList). */
 delete_object(_,[],[]).
 delete_object(Object, [Object|Remain], Remain) :- !.
 delete_object(Object, [First|Remain], [First|NewList]) :- 
@@ -99,28 +114,47 @@ delete_object(Object, [First|Remain], [First|NewList]) :-
 
 /*USE*/
 use(Object) :-
-    weapon(Object,Damage,AmmoType,AmmoCount),
-    equipped_weapon(player, Object, AmmoCount).
-
-use(Object) :-
-    inventory(MaxCap, ListObjek, BanyakObjek),
-    medicine(Object,Health),
-    use_object(Object,ListObjek),
-    add_hp(Health,player),
+    has_started,
+    weapon(Object,_,_,AmmoCount),
+    equipped_weapon(player, Object, AmmoCount),
+    delete_from_inventory(player, Object),
+    format("You equipped ~w", [Object]),
     !.
 
 use(Object) :-
+    has_started,
+    medicine(Object,Health),
+    change_player_stat(Health, 0),
+    delete_from_inventory(player, Object),
+    format("You used ~w", [Object]),
+    !.
+
+use(Object) :-
+    has_started,
     armor(Object,Armor),
-    add_armor(Armor,player),
+    change_player_stat(0, Armor),
+    delete_from_inventory(player, Object),
+    format("You wore ~w", [Object]),
     !.
 use(_) :-
+    has_started,
     write('You have nothing about this item.'),nl.
 
-use_object(Object) :-
-    retract(inventory(MaxCap, ListObjek, BanyakObjek)),
-    delete_object(Object,ListObjek,ListObjekBaru),
-    count_object(ListObjekBaru, BanyakObjekBaru),
-    asserta(inventory(MaxCap, ListObjekBaru, BanyakObjekBaru)).
+help :-
+    has_started,
+    print_help.
 
+status :- 
+    has_started,
+    print_player_stat.
+
+look :- 
+    has_started,
+	position(player, X, Y).
+	%print_look_area(MapID, X, Y).
+
+map :-
+    has_started,
+    print_map2(1,1).
 
 quit :- stop.
