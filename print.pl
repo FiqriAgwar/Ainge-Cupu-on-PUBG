@@ -52,7 +52,7 @@ print_ammo :-
 print_player_inventory :-
 	inventory(player, _, ListObject),
 	ListObject == [],
-	write('Your inventory is empty!').
+	write('Your inventory is empty!'), !.
 
 print_player_inventory :-
 	inventory(player, _, ListObject),

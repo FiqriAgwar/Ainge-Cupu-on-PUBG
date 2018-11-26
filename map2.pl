@@ -53,7 +53,7 @@ print_map2(X,Y) :-
     Xi is X+1,
     print_map2(Xi,Y),!.
 print_map2(X,Y) :-
-    X == 11,
+    X == 11, nl,
     Xi is 1,
     Yi is Y+1,
     print_map2(Xi,Yi),!.

@@ -22,11 +22,14 @@ attack :-
     
 attack :-
     has_started,
+    position(player, X, Y),
+    position(EnemyID, X, Y),
+    \+ enemy(EnemyID),
     no_attack, !.
 
 decrease_ammo(Id,WeaponName,AmmoCount) :-
     retract(equipped_weapon(Id, WeaponName, AmmoCount)),
-    NewAmmoCount = AmmoCount-1,
+    NewAmmoCount is AmmoCount-1,
     asserta(equipped_weapon(Id, WeaponName, NewAmmoCount)).
 
 no_attack :-
@@ -68,8 +71,9 @@ take(Object) :-
     has_started,
     position(player,X,Y),
     position(Object,X,Y),
-	take_object(Object),
-    write('You took ~w', [Object]),!.
+    is_inv_exist,
+    take_object(Object),
+    format('You took ~w', [Object]),!.
 
 take(_) :-
     has_started,
@@ -79,7 +83,8 @@ take(_) :-
 take_object(Object) :-
     is_inv_exist,
     position(player, X, Y),
-    retract(position(Object, X, Y)).
+    position(Object, X, Y),
+    add_to_inventory(player, Object).
 
 /*
 steps by steps:
@@ -93,9 +98,11 @@ steps by steps:
 /*DROP*/
 drop(Object) :-
     has_started,
+    inventory(player, _, ListObject),
+    member(Object, ListObject),
     position(player,X,Y),
     drop_object(Object,X,Y),
-    write('You dropped ~w', [Object]), !.
+    format('You dropped ~w', [Object]), !.
 
 drop(_) :-
     has_started,
@@ -104,7 +111,8 @@ drop(_) :-
 
 drop_object(Object,X,Y) :-
     position(player,X,Y),
-    asserta(position(Object,X,Y)).
+    asserta(position(Object,X,Y)),
+    delete_from_inventory(player, Object).
 
 /* delete_object(ObjectName, OldList, NewList). */
 delete_object(_,[],[]).
@@ -115,6 +123,8 @@ delete_object(Object, [First|Remain], [First|NewList]) :-
 /*USE*/
 use(Object) :-
     has_started,
+    inventory(player, _, ListObject),
+    member(Object, ListObject),
     weapon(Object,_,_,AmmoCount),
     equipped_weapon(player, Object, AmmoCount),
     delete_from_inventory(player, Object),
@@ -123,6 +133,8 @@ use(Object) :-
 
 use(Object) :-
     has_started,
+    inventory(player, _, ListObject),
+    member(Object, ListObject),
     medicine(Object,Health),
     change_player_stat(Health, 0),
     delete_from_inventory(player, Object),
@@ -131,6 +143,8 @@ use(Object) :-
 
 use(Object) :-
     has_started,
+    inventory(player, _, ListObject),
+    member(Object, ListObject),
     armor(Object,Armor),
     change_player_stat(0, Armor),
     delete_from_inventory(player, Object),
@@ -149,8 +163,8 @@ status :-
     print_player_stat.
 
 look :- 
-    has_started,
-	position(player, X, Y).
+    has_started.
+	%position(player, X, Y).
 	%print_look_area(MapID, X, Y).
 
 map :-

@@ -40,11 +40,11 @@ enemy_attack:-
     damage_to_player(Damage).
 
 decrease_enemy(EnemyID):- 
-    jumlah_enemy(JumlahEnemy), !,
-    JumlahNewEnemy is JumlahEnemy -1,
     retract(jumlah_enemy(JumlahEnemy)),
+    JumlahNewEnemy is JumlahEnemy-1, !,
     asserta(jumlah_enemy(JumlahNewEnemy)),
-    retract(enemy(EnemyID)).
+    retract(enemy(EnemyID)),
+    retract(position(EnemyID, _,_)), !.
 
 random_move :-
     position(EnemyID,X,Y), enemy(EnemyID), position(player,X,Y).
